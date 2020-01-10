@@ -24,7 +24,10 @@ sok mindenben hasznos de a főbb érv amiért ajánlom az hogy újra tudod indí
 ```bash
 add meg a bot kulcsát a config.json fileban (itt tudod változtatni a prefix et is).
 ```
-navigált egy parancssori abalakot a bot elérési utjához: cd /bot/elérési/útja/
+navigálj egy parancssori abalakot a bot elérési utjához: 
+```bash
+cd /bot/elérési/útja/
+```
 vagy shift+jobb klik a bot mappájában majd katt a "PowerShell-ablak megnyitása itt"/"parancssor-ablak megnyitása itt" feliratra.
 
 ```bash
