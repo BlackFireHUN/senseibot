@@ -1,13 +1,15 @@
 # SENSEI
 <h2 align="center"><img src="http://blackfire.hu/dl/running.png"></h2>
 
-SENSEI nagyrészt nodejs ben írt privát bot, kizárólag az animem.org discord szerveréhez készült, így lehetnek funkciók ami guild.id/user.id specifikusak(pl. eval parancs user.id specifikus és csak BlackFire használhatja)
+SENSEI nagyrészt nodejs ben írt privát bot, kizárólag az animem.org discord szerveréhez készült,<br/> így lehetnek funkciók ami guild.id/user.id specifikusak(pl. eval parancs user.id specifikus és csak BlackFire használhatja)
 
 ## Telepítés
-Szükséged lesz:
-A node runtime ra a futtatáshoz.
-NPM re a repository-k letöltésére.
-FFMPEG re (music bot elementhez(nem 100% os a müködése)).
+<p>Szükséged lesz:</p>
+<ul>
+<li>A node runtime ra a futtatáshoz.</li>
+<li>NPM re a repository-k letöltésére.</li>
+<li>FFMPEG re (music bot elementhez(nem 100% os a müködése)).</li>
+</ul>
 
 AJÁNLOT: nodemon telepítését
 ```bash
