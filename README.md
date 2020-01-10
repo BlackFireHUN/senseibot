@@ -1,5 +1,7 @@
 # SENSEI
-
+<p align="center">
+<h1>STATUS: WORKING (IN DEVELOPMENT)</h1>
+</p>
 SENSEI nagyrészt nodejs ben írt privát bot, kizárólag az animem.org discord szerveréhez készült, így lehetnek funkciók ami guild.id/user.id specifikusak(pl. eval parancs user.id specifikus és csak BlackFire használhatja)
 
 ## Telepítés
