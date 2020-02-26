@@ -1,170 +1,199 @@
-const Discord = require('discord.js');
-const config = require('./config.json');
-const c = require('chalk');
-const fs = require('fs');
-const Canvas = require('canvas');
-const music = require('discord.js-music-v11');
-const mysql = require("mysql");
+const Discord = require("discord.js");
+const config = require("./config.json");
+const c = require("chalk");
+const fs = require("fs");
+const Canvas = require("canvas");
+
+
+let db = JSON.parse(fs.readFileSync("./database.json", "utf8"));
 
 const prefix = config.prefix;
 
 const bot = new Discord.Client();
-require("./util/eventHandler")(bot)
-music(bot, {
-    prefix: '-',       // Prefix of '-'.
-    global: true,     // Server-specific queues.
-    maxQueueSize: 10,  // Maximum queue size of 10.
-    clearInvoker: false, // If permissions applicable, allow the bot to delete the messages that invoke it (start with prefix)
-    channel: 'asd'   // Name of voice channel to join. If omitted, will instead join user's voice channel.
+bot.music = require('discord.js-musicbot-addon');
+
+
+bot.music.start(bot, {
+    botPrefix: "-",
+    ownerOverMember: true,
+    ownerID: '152615338213638144',
+    youtubeKey: config.ytapi;
 });
+
+
+require("./util/eventHandler")(bot);
+
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
 
 fs.readdir("./cmds/", (err, files) => {
-    if(err) console.error(err);
+  if (err) console.error(err);
 
-    let jsfiles = files.filter(f => f.split(".").pop() === "js");
-    if(jsfiles.length <= 0) {
-        console.log("Nem Található parancs!");
-        return;
-    }
+  let jsfiles = files.filter(f => f.split(".").pop() === "js");
+  if (jsfiles.length <= 0) {
+    console.log("Nem Található parancs!");
+    return;
+  }
 
-    console.log(`${jsfiles.length} parancs betöltve!`);
+  console.log(`${jsfiles.length} parancs betöltve!`);
 
-    jsfiles.forEach((f, i) => {
-        let props = require(`./cmds/${f}`);
-        bot.commands.set(props.help.name, props);
-
-    });
-});
-var con = mysql.createConnection({
-	host: "localhost",
-	user: "root",
-	password: "",
-	database: "sensei"
+  jsfiles.forEach((f, i) => {
+    let props = require(`./cmds/${f}`);
+    bot.commands.set(props.help.name, props);
+  });
 });
 
-con.connect(err => {
-	if(err) throw err;
-	console.log("Csatlakozva az adatbázishoz!");
-});
-
-function generateXp() {
-	let min = 20;
-	let max = 30;
-
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-bot.login(config.token)
+bot.login(config.token);
 
 bot.on("message", async message => {
-    if(message.author.bot) return;
-    if(message.channel.type === "dm") return message.channel.sendMessage("Nem használhatod ezt a parancsot privát üzenetben!");
+  const parancschannel = bot.channels.find(ch => ch.name === "bot-parancsok");
+  // if the user is not on db add the user and change his values to 0
+  if (!db[message.author.id])
+    db[message.author.id] = {
+      xp: 0,
+      level: 0
+    };
+  db[message.author.id].xp++;
+  let userInfo = db[message.author.id];
+  if (userInfo.xp > 100) {
+    userInfo.level++;
+    userInfo.xp = 0;
+    parancschannel.send(
+      `**${message.author.username}** Gratulálok! Szintet léptél! Szinted: **${userInfo.level}**`
+    );
+  }
+  fs.writeFile("./database.json", JSON.stringify(db), x => {
+    if (x) console.error(x);
+  });
 
-    con.query(`SELECT * FROM xp WHERE id = '${message.author.id}'`, (err, rows) => {
-		if(err) throw err;
+  if (
+    config.FILTER_LIST.some(word =>
+      message.content.toLowerCase().includes(word)
+    )
+  ) {
+    message.delete();
+    message.author.send("Ne beszélj csúnyán!");
+    const randommondat = [
+      "A szivárványok szépek!",
+      "A zene az jó!",
+      "Szeretem a pillangókat!"
+    ];
+    const random =
+      randommondat[Math.floor(Math.random() * randommondat.length)];
+    return message.channel.send(
+      `**${message.author.username}** Ezt akarta mondani: ${random}`
+    );
+  }
 
-		let sql;
+  if (message.author.bot) return;
+  if (message.channel.type === "dm")
+    return message.channel.send(
+      "Nem használhatod ezt a parancsot privát üzenetben!"
+    );
 
-		if(rows.length < 1) {
-			sql = `INSERT INTO xp (id, xp) VALUES ('${message.author.id}', ${generateXp()})`;
-		} else {
-			let xp = rows[0].xp;
-            sql = `UPDATE xp SET xp = ${xp + generateXp()} WHERE id = '${message.author.id}'`;           
-		}
-		con.query(sql);
-	});
+  if (
+    /(?:https?:\/)?discord(?:app.com\/invite|.gg)/gi.test(message.content) &&
+    !message.member.hasPermission(["MANAGE_MESSAGES", "ADMINISTRATOR"])
+  ) {
+    message.delete();
+    message.author.send("Nem küldhetsz Discord invite linkeket!");
+    return;
+  }
 
-	if(/(?:https?:\/)?discord(?:app.com\/invite|.gg)/gi.test(message.content)) {
-		message.delete();
-		return;
-	}
+  let messageArray = message.content.split(/\s+/g);
+  let command = messageArray[0].toLowerCase();
+  let args = messageArray.slice(1);
 
-    let messageArray = message.content.split(/\s+/g);
-    let command = messageArray[0].toLowerCase();
-    let args = messageArray.slice(1);
+  if (!command.startsWith(prefix)) return;
 
-    if(!command.startsWith(prefix)) return;
-
-    let cmd = bot.commands.get(command.slice(prefix.length));
-    if(cmd) cmd.run(bot, message, args, con);
-
+  let cmd = bot.commands.get(command.slice(prefix.length));
+  if (cmd) cmd.run(bot, message, args, db, fs);
 });
-
 
 // üdvözlő üzenet! \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 const applyText = (canvas, text) => {
-	const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
 
-	let fontSize = 70;
+  let fontSize = 70;
 
-	do {
-		ctx.font = `${fontSize -= 10}px sans-serif`;
-	} while (ctx.measureText(text).width > canvas.width - 300);
-	return ctx.font;
+  do {
+    ctx.font = `${(fontSize -= 10)}px sans-serif`;
+  } while (ctx.measureText(text).width > canvas.width - 300);
+  return ctx.font;
 };
 
-bot.on('guildMemberAdd',async (member) => {
-	const channel = member.guild.channels.find(ch => ch.name === 'üdvözlünk');
-    if (!channel) return;
+bot.on("guildMemberAdd", async member => {
+  const channel = member.guild.channels.find(ch => ch.name === "üdvözlünk");
+  const privchannel = member.guild.channels.find(ch => ch.name === "spy");
+  let role = member.guild.roles.find(r => r.name === "Tag");
+  member.addRole(role);
 
-    const canvas = Canvas.createCanvas(700, 250);
-	const ctx = canvas.getContext('2d');
+  if (!channel) return;
 
-	const background = await Canvas.loadImage('./wallpaper.png');
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+  const canvas = Canvas.createCanvas(700, 250);
+  const ctx = canvas.getContext("2d");
 
-    ctx.strokeStyle = '#d9b500';    
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+  var files = fs.readdirSync("./imgs/");
+  /* now files is an Array of the name of the files in the folder and you can pick a random name inside of that array */
+  let chosenFile = files[Math.floor(Math.random() * files.length)];
 
-    ctx.font = '28px sans-serif';
-	ctx.fillStyle = '#ffffff';
-    ctx.fillText('Üdv a szerveren,', canvas.width / 2.5, canvas.height / 3.5);
+  const background = await Canvas.loadImage(`./imgs/${chosenFile}`);
+  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    ctx.font = '28px sans-serif';
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText(canvas.width / 2.5, canvas.height / 1.5);
+  ctx.strokeStyle = "#d9b500";
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
-    ctx.font = applyText(canvas, member.displayName);
-	ctx.fillStyle = '#ffffff';
-	ctx.fillText(member.displayName, canvas.width / 2.5, canvas.height / 1.8);
+  ctx.font = "28px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("Üdv a szerveren,", canvas.width / 2.5, canvas.height / 3.5);
 
-	ctx.beginPath();
-	ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
-	ctx.closePath();
-	ctx.clip();
+  ctx.font = "28px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(canvas.width / 2.5, canvas.height / 1.5);
 
-    const avatar = await Canvas.loadImage(member.user.displayAvatarURL);
-	ctx.drawImage(avatar, 25, 25, 200, 200);
+  ctx.font = applyText(canvas, member.displayName);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(member.displayName, canvas.width / 2.5, canvas.height / 1.8);
 
-	const attachment = new Discord.Attachment(canvas.toBuffer(), 'welcome-image.png');
+  ctx.beginPath();
+  ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
+  ctx.closePath();
+  ctx.clip();
 
-	channel.send(member, attachment);
+  const avatar = await Canvas.loadImage(member.user.displayAvatarURL);
+  ctx.drawImage(avatar, 25, 25, 200, 200);
+
+  const attachment = new Discord.Attachment(
+    canvas.toBuffer(),
+    "welcome-image.png"
+  );
+  privchannel.send(`${member.user.username}: ${member.user.createdAt}`);
+  channel.send(member, attachment);
 });
 // üdvözlő üzenet vége! \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-bot.on('message', message => {
-    if (message.content === 'XD') {
-    message.channel.send('XDD');
-    }
-  });
-   bot.on('message', message => {
-    if (message.content === 'Suki Suki Daisuki') {
-    message.channel.send('hime!! hime!!');
-    }
-  });
-  bot.on('message', message => {
-    if (message.content === 'hime!! hime!!') {
-    message.channel.send('kira kira rin ☆');
-    }
-  });
-   bot.on('message', message => {
-    if (message.content === 'kira kira rin ☆') {
-    message.channel.send('kimi to minna ireba watashi tte zettai muteki');
-    }
-  });
-    bot.on('message', message => {
-    if (message.content === 'what?') {
-    message.channel.send('Nani???4?');
-    }
-  });
+bot.on("message", message => {
+  if (message.content === "XD") {
+    message.channel.send("XDD");
+  }
+});
+bot.on("message", message => {
+  if (message.content === "Suki Suki Daisuki") {
+    message.channel.send("hime!! hime!!");
+  }
+});
+bot.on("message", message => {
+  if (message.content === "hime!! hime!!") {
+    message.channel.send("kira kira rin ☆");
+  }
+});
+bot.on("message", message => {
+  if (message.content === "kira kira rin ☆") {
+    message.channel.send("kimi to minna ireba watashi tte zettai muteki");
+  }
+});
+bot.on("message", message => {
+  if (message.content === "what?") {
+    message.channel.send("Nani???4?");
+  }
+});
