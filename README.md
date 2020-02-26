@@ -11,18 +11,13 @@ SENSEI nagyrészt nodejs ben írt privát bot, kizárólag az animem.org discord
 <li>FFMPEG re (music bot elementhez(nem 100% os a müködése)).</li>
 </ul>
 
-AJÁNLOT: nodemon telepítését
-```bash
-npm i nodemon
-```
-sok mindenben hasznos de a főbb érv amiért ajánlom az hogy újra tudod indítani a bot ot annak leállítása nélkül.
-
 (Asszem ennyi. megj: a bot fejlesztési státuszban van... csak windowson teszteltem, és in fact tudom hogy linux on csak kisebb változtatások után lehet futtatni(pl: ffmpeg elérési út).
 
 
 
 ```bash
 add meg a bot kulcsát a config.json fileban (itt tudod változtatni a prefix et is).
+illetve add meg a youtube api kulcsodat is.
 ```
 navigálj egy parancssori abalakot a bot elérési utjához: 
 ```bash
@@ -30,20 +25,15 @@ cd /bot/elérési/útja/
 ```
 vagy shift+jobb klik a bot mappájában majd katt a "PowerShell-ablak megnyitása itt"/"parancssor-ablak megnyitása itt" feliratra.
 
+dependency-k telepítése:
 ```bash
 npm i
 ```
 
-nodemon nélkül:
+indítás:
 ```bash
 node bot.js
 ```
-vagy
-nodemon-al:
-```bash
-nodemon bot.js
-```
-
 
 ## AUTHOR
 [BlackFire](https://blackfire.hu/)
