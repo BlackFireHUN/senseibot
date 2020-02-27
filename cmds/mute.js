@@ -26,30 +26,12 @@ module.exports.run = async (bot, message, args) => {
     return message.channel.send(
       "Nem némíthatsz valakit aki nagyobb jogokkal rendelkezik nálad."
     );
-  let role = message.guild.roles.find(r => r.name === "S Muted");
-  if (!role) {
-    try {
-      role = await message.guild.createRole({
-        name: "S Muted",
-        color: "#000000",
-        permissions: []
-      });
+  let role = message.guild.roles.find(r => r.name === "Tag");
 
-      message.guild.channels.forEach(async (channel, id) => {
-        await channel.overwritePermissions(role, {
-          SEND_MESSAGES: false,
-          ADD_REACTIONS: false
-        });
-      });
-    } catch (e) {
-      console.log(e.stack);
-    }
-  }
-
-  if (toMute.roles.has(role.id))
+  if (!toMute.roles.has(role.id))
     return message.channel.send("Ez a felhasználó már némítva van!");
 
-  await toMute.addRole(role), message.channel.send(`Elnémítva: ${toMute}`);
+  await toMute.removeRole(role), message.channel.send(`Elnémítva: ${toMute}`);
   console.log(`${message.author.username}: mute: ${toMute} used`);
   return;
 };

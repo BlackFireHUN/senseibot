@@ -36,10 +36,12 @@ module.exports.run = async (bot, message, args) => {
       .setThumbnail(bot.user.displayAvatarURL)
       .setColor(0x00ae86)
       .setTimestamp()
-      .setDescription(`A prefix: ${prefix}\nAz elérhető parancsok:`)
+      .setDescription(`A prefix: ${prefix}`)
       .addField(
-        "``ping`` ``vote`` ``userinfo`` ``serverinfo`` ``weather`` ``botinfo`` ``avatar`` ``clear`` ``eval`` ``say`` ``dankmeme`` ``meme`` ``animeme`` ``mute`` ``unmute`` ``reload`` ``setlevel`` ``shutdown`` ``lewd``"
+        "Az elérhető parancsok:",
+        "``ping`` ``vote`` ``userinfo`` ``serverinfo`` ``weather`` ``botinfo`` ``avatar`` ``clear`` ``say`` ``dankmeme`` ``meme`` ``animeme`` ``mute`` ``unmute`` ``reload`` ``setlevel`` ``lewd`` ``nsfw`` ``hentai`` ``hneko`` ``yuri`` ``trap`` ``keta``"
       )
+      .addField("Music modul segítség:", "``mhelp``")
       .setFooter("© Animem.org", message.author.avatarURL);
     message.author.send(dembed);
   }

@@ -3,23 +3,24 @@ const config = require("./config.json");
 const c = require("chalk");
 const fs = require("fs");
 const Canvas = require("canvas");
-
+const superagent = require("superagent");
 
 let db = JSON.parse(fs.readFileSync("./database.json", "utf8"));
 
 const prefix = config.prefix;
 
 const bot = new Discord.Client();
-bot.music = require('discord.js-musicbot-addon');
-
+bot.music = require("discord.js-musicbot-addon");
 
 bot.music.start(bot, {
-    botPrefix: "-",
-    ownerOverMember: true,
-    ownerID: '152615338213638144',
-    youtubeKey: config.ytapi;
+  botPrefix: "-",
+  ownerOverMember: true,
+  ownerID: "152615338213638144",
+  youtubeKey: config.ytapi,
+  help: {
+    name: "mhelp"
+  }
 });
-
 
 require("./util/eventHandler")(bot);
 
@@ -61,6 +62,17 @@ bot.on("message", async message => {
     parancschannel.send(
       `**${message.author.username}** Gratulálok! Szintet léptél! Szinted: **${userInfo.level}**`
     );
+    if (userInfo.level === 50) {
+      let role = message.guild.roles.find(r => r.name === "gifted");
+      if (message.author.roles.has(role.id)) return;
+
+      await message.author.addRole(role),
+        parancschannel.send(
+          `**${message.author.username}** Meg lett ajándékozva az 50. szint eléréséért!`
+        );
+      console.log(`${message.author.username}: got gifted!`);
+      return;
+    }
   }
   fs.writeFile("./database.json", JSON.stringify(db), x => {
     if (x) console.error(x);
@@ -195,5 +207,14 @@ bot.on("message", message => {
 bot.on("message", message => {
   if (message.content === "what?") {
     message.channel.send("Nani???4?");
+  }
+});
+bot.on("message", message => {
+  if (message.content.toLowerCase === "baka") {
+    superagent
+      .get("https://nekos.life/api/v2/img/baka")
+      .end((err, response) => {
+        message.channel.send({ file: response.body.url });
+      });
   }
 });

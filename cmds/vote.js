@@ -26,14 +26,12 @@ module.exports.run = async (bot, message, args) => {
         .setFooter("© Animem.org")
         .setTimestamp()
         .addField(
-          `${agree}: ${
-            reactions.get(agree) ? reactions.get(agree).count - 1 : 0
-          }`
+          `${agree}:`,
+          `${reactions.get(agree) ? reactions.get(agree).count - 1 : 0}`
         )
         .addField(
-          `${disagree}: ${
-            reactions.get(disagree) ? reactions.get(disagree).count - 1 : 0
-          }`
+          `${disagree}:`,
+          `${reactions.get(disagree) ? reactions.get(disagree).count - 1 : 0}`
         );
 
       await message.channel.send(embed);

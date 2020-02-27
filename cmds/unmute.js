@@ -20,12 +20,12 @@ module.exports.run = async (bot, message, args) => {
       `Nem jelöltél meg felhasználót! Használat ${prefix}unmute @falhasználó !`
     );
 
-  let role = message.guild.roles.find(r => r.name === "S Muted");
+  let role = message.guild.roles.find(r => r.name === "Tag");
 
-  if (!role || !toMute.roles.has(role.id))
+  if (toMute.roles.has(role.id))
     return message.channel.send("Ez a felhasználó nincs némítva!");
 
-  await toMute.removeRole(role),
+  await toMute.addRole(role),
     message.channel.send(`Némítás kikapcsolva számára: ${toMute}`);
   console.log(`${message.author.username}: unmute: ${toMute} used`);
   return;

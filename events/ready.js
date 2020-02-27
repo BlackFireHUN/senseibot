@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const c = require("chalk");
+const superagent = require("superagent");
 
 module.exports = async bot => {
   console.log(
@@ -15,6 +16,18 @@ module.exports = async bot => {
   }
 
   let statuses = ["-help", "animem.org", "A zene az jó"];
+
+  setInterval(() => {
+    const nsfw = bot.channels.find(ch => ch.name === "nsfw");
+    if (!nsfw) return;
+    console.log("megprobáltam a -nsfw-t");
+    superagent
+      .get("https://nekobot.xyz/api/image")
+      .query({ type: "hentai" })
+      .end((err, response) => {
+        nsfw.send({ file: response.body.message });
+      });
+  }, 600000);
 
   setInterval(() => {
     let status = statuses[Math.floor(Math.random() * statuses.length)];
