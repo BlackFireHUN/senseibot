@@ -10,11 +10,13 @@ module.exports.run = async (bot, message, args) => {
       "https://nekos.life/api/lewd/neko"
     ];
     const random = links[Math.floor(Math.random() * links.length)];
-    superagent
-      .get("https://nekos.life/api/v2/img/lewd")
-      .end((err, response) => {
-        message.channel.send({ file: response.body.url });
-      });
+    superagent.get(random).end((err, response) => {
+      const embed = new Discord.RichEmbed()
+        .setImage(response.body.url)
+        .setColor(`#000000`)
+        .setURL(response.body.url);
+      message.channel.send(embed);
+    });
   } else {
     message.channel.send(
       "Ez a parancs csak nsfw nek jelőlt csatornákban használható!"

@@ -4,22 +4,23 @@ const c = require("chalk");
 const fs = require("fs");
 const Canvas = require("canvas");
 const superagent = require("superagent");
-
+const moment = require("moment");
+const ra = require("remove-accents");
 let db = JSON.parse(fs.readFileSync("./database.json", "utf8"));
 
 const prefix = config.prefix;
 
 const bot = new Discord.Client();
-bot.music = require("discord.js-musicbot-addon");
 
-bot.music.start(bot, {
-  botPrefix: "-",
-  ownerOverMember: true,
-  ownerID: "152615338213638144",
-  youtubeKey: config.ytapi,
-  help: {
-    name: "mhelp"
-  }
+bot.chat = require("discord.js-chatbot");
+
+bot.chat.ChatBot(bot, {
+  cleverUser: "B8mZi7J24Zc3NVjC",
+  cleverKey: "6VygFL9KLe4AqWwJ9F5SnQZGz6YsdwTi",
+  // cleverNick will be the session the bot uses from cleverbot.io.
+  // This can be whatever you like.
+  cleverNick: "sensei",
+  watchMention: true
 });
 
 require("./util/eventHandler")(bot);
@@ -62,17 +63,6 @@ bot.on("message", async message => {
     parancschannel.send(
       `**${message.author.username}** Gratulálok! Szintet léptél! Szinted: **${userInfo.level}**`
     );
-    if (userInfo.level === 50) {
-      let role = message.guild.roles.find(r => r.name === "gifted");
-      if (message.author.roles.has(role.id)) return;
-
-      await message.author.addRole(role),
-        parancschannel.send(
-          `**${message.author.username}** Meg lett ajándékozva az 50. szint eléréséért!`
-        );
-      console.log(`${message.author.username}: got gifted!`);
-      return;
-    }
   }
   fs.writeFile("./database.json", JSON.stringify(db), x => {
     if (x) console.error(x);
@@ -185,11 +175,6 @@ bot.on("guildMemberAdd", async member => {
 });
 // üdvözlő üzenet vége! \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 bot.on("message", message => {
-  if (message.content === "XD") {
-    message.channel.send("XDD");
-  }
-});
-bot.on("message", message => {
   if (message.content === "Suki Suki Daisuki") {
     message.channel.send("hime!! hime!!");
   }
@@ -210,11 +195,169 @@ bot.on("message", message => {
   }
 });
 bot.on("message", message => {
-  if (message.content.toLowerCase === "baka") {
+  if (message.content.toLowerCase() === "baka") {
     superagent
       .get("https://nekos.life/api/v2/img/baka")
       .end((err, response) => {
         message.channel.send({ file: response.body.url });
       });
+  }
+});
+bot.on("message", async message => {
+  if (message.channel.type === "text") {
+    //if(message.guild.id === "szerverid") return;
+    if (message.channel.id === "643093978799013901") return;
+    if (message.channel.id === "643172205903085578") return;
+    if (message.channel.id === "645514122959650826") return;
+    if (message.channel.id === "643854113733607435") return;
+    if (message.channel.id === "643563061692727296") return;
+    if (message.channel.id === "681597174932701216") return;
+    if (message.channel.id === "681610982468223022") return;
+
+    let szoba = message.channel.name;
+    let szobaid = message.channel.id;
+    const Mtime = moment().format("LLLL"); //creates time stamp
+    const msgID = message.id;
+    const gn = message.guild.name.replace(
+      /[^a-zA-Z0-9íőúéáűöüóöÍŐÚÉÁŰÖÜÓÖ ]/g,
+      " "
+    );
+    const gid = message.guild.id;
+    let felhasznalo = message.author.username.replace(
+      /[^a-zA-Z0-9íőúéáűöüóöÍŐÚÉÁŰÖÜÓÖ ]/g,
+      " "
+    );
+    let felhasznaloid = message.author.id;
+    var Attachment = message.attachments.array();
+    fullchatlog(
+      `${Mtime}: ${gn}  ${szoba} (szoba ID:${szobaid}) ${felhasznalo}(ID:${felhasznaloid}): ${message.content}  \r\n`
+    );
+    fullchatloguser(
+      `${Mtime}: ${gn}  ${szoba} (szoba ID:${szobaid}) ${felhasznalo}(ID:${felhasznaloid}): ${message.content}  \r\n`
+    );
+
+    function fullchatloguser(message) {
+      fs.appendFileSync(
+        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/${felhasznalo}_${felhasznaloid}.txt`,
+        ra.remove(message),
+        "utf8",
+        { flags: "a+" }
+      );
+    }
+
+    function fullchatlog(message) {
+      fs.appendFileSync(
+        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/${gn}_${gid}.txt`,
+        ra.remove(message),
+        "utf8",
+        {
+          flags: "a+"
+        }
+      );
+    }
+  }
+});
+bot.on("voiceStateUpdate", (oldMember, newMember) => {
+  let newUserChannel = newMember.voiceChannel;
+  let oldUserChannel = oldMember.voiceChannel;
+
+  if (oldUserChannel === undefined && newUserChannel !== undefined) {
+    var currentdate = new Date();
+    var datetime =
+      "Date Time: " +
+      currentdate.getDate() +
+      "/" +
+      (currentdate.getMonth() + 1) +
+      "/" +
+      currentdate.getFullYear() +
+      " @ " +
+      currentdate.getHours() +
+      ":" +
+      currentdate.getMinutes() +
+      ":" +
+      currentdate.getSeconds();
+
+    // User Joins a voice channel
+    console.log(
+      `[${newMember.user.username}] belépett ide: [${newMember.guild.name}]  [${newMember.voiceChannel.name}] ${datetime}`
+    );
+    fullchatlog(
+      `[${newMember.user.username}] belépett ide: [${newMember.guild.name}]  [${newMember.voiceChannel.name}] ${datetime}\r\n`
+    );
+    function fullchatlog(message) {
+      fs.appendFileSync(
+        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/voicechat.txt`,
+        ra.remove(message),
+        "utf8",
+        {
+          flags: "a+"
+        }
+      );
+    }
+  } else if (newUserChannel === undefined) {
+    var currentdate = new Date();
+    var datetime =
+      "Date Time: " +
+      currentdate.getDate() +
+      "/" +
+      (currentdate.getMonth() + 1) +
+      "/" +
+      currentdate.getFullYear() +
+      " @ " +
+      currentdate.getHours() +
+      ":" +
+      currentdate.getMinutes() +
+      ":" +
+      currentdate.getSeconds();
+    // User leaves a voice channel
+    console.log(
+      `[${newMember.user.username}] kilépett innen: [${newMember.guild.name}]  [${oldMember.voiceChannel.name}] ${datetime}`
+    );
+    fullchatlog(
+      `[${newMember.user.username}] kilépett innen: [${newMember.guild.name}]  [${oldMember.voiceChannel.name}] ${datetime}\r\n`
+    );
+    function fullchatlog(message) {
+      fs.appendFileSync(
+        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/voicechat.txt`,
+        ra.remove(message),
+        "utf8",
+        {
+          flags: "a+"
+        }
+      );
+    }
+  } else {
+    var currentdate = new Date();
+    var datetime =
+      "Date Time: " +
+      currentdate.getDate() +
+      "/" +
+      (currentdate.getMonth() + 1) +
+      "/" +
+      currentdate.getFullYear() +
+      " @ " +
+      currentdate.getHours() +
+      ":" +
+      currentdate.getMinutes() +
+      ":" +
+      currentdate.getSeconds();
+    //user moved
+    if (oldMember.voiceChannel.name === newMember.voiceChannel.name) return;
+    console.log(
+      `[${newMember.user.username}] atlepett ide: [${newMember.guild.name}] [${oldMember.voiceChannel.name}] --> [${newMember.voiceChannel.name}] ${datetime}`
+    );
+    fullchatlog(
+      `[[${newMember.user.username}]] atlepett ide: [${newMember.guild.name}] [${oldMember.voiceChannel.name}] --> [${newMember.voiceChannel.name}] ${datetime}\r\n`
+    );
+    function fullchatlog(message) {
+      fs.appendFileSync(
+        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/voicechat.txt`,
+        ra.remove(message),
+        "utf8",
+        {
+          flags: "a+"
+        }
+      );
+    }
   }
 });

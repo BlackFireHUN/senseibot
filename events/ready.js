@@ -25,7 +25,11 @@ module.exports = async bot => {
       .get("https://nekobot.xyz/api/image")
       .query({ type: "hentai" })
       .end((err, response) => {
-        nsfw.send({ file: response.body.message });
+        const embed = new Discord.RichEmbed()
+          .setImage(response.body.message)
+          .setColor(`#000000`)
+          .setURL(response.body.message);
+        nsfw.send(embed);
       });
   }, 600000);
 

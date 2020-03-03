@@ -6,7 +6,11 @@ module.exports.run = async (bot, message, args) => {
     superagent
       .get("https://nekos.life/api/v2/img/trap")
       .end((err, response) => {
-        message.channel.send({ file: response.body.url });
+        const embed = new Discord.RichEmbed()
+          .setImage(response.body.url)
+          .setColor(`#000000`)
+          .setURL(response.body.url);
+        message.channel.send(embed);
       });
   } else {
     message.channel.send(

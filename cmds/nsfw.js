@@ -7,7 +7,11 @@ module.exports.run = async (bot, message, args) => {
       .get("https://nekobot.xyz/api/image")
       .query({ type: "hentai" })
       .end((err, response) => {
-        message.channel.send({ file: response.body.message });
+        const embed = new Discord.RichEmbed()
+          .setImage(response.body.message)
+          .setColor(`#000000`)
+          .setURL(response.body.message);
+        message.channel.send(embed);
       });
   } else {
     message.channel.send(
