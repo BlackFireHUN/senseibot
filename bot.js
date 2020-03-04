@@ -247,7 +247,7 @@ bot.on("message", async message => {
 
     function fullchatlog(message) {
       fs.appendFileSync(
-        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/${gn}_${gid}.txt`,
+        `./log/${gn}_${gid}.txt`,
         ra.remove(message),
         "utf8",
         {
@@ -286,7 +286,7 @@ bot.on("voiceStateUpdate", (oldMember, newMember) => {
     );
     function fullchatlog(message) {
       fs.appendFileSync(
-        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/voicechat.txt`,
+        `./log/voicechat.txt`,
         ra.remove(message),
         "utf8",
         {
@@ -318,7 +318,7 @@ bot.on("voiceStateUpdate", (oldMember, newMember) => {
     );
     function fullchatlog(message) {
       fs.appendFileSync(
-        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/voicechat.txt`,
+        `./log/voicechat.txt`,
         ra.remove(message),
         "utf8",
         {
@@ -351,7 +351,7 @@ bot.on("voiceStateUpdate", (oldMember, newMember) => {
     );
     function fullchatlog(message) {
       fs.appendFileSync(
-        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/voicechat.txt`,
+        `./log/voicechat.txt`,
         ra.remove(message),
         "utf8",
         {
