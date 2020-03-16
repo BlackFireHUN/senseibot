@@ -1,13 +1,12 @@
 const Discord = require("discord.js");
 
-module.exports.run = async (bot, message, args, db) => {
+module.exports.run = async (bot, message, args, con) => {
   let target = message.mentions.users.first() || message.author;
-  if (!db[target.id])
-    db[target.id] = {
-      xp: 0,
-      level: 0
-    };
-  let userInfo = db[target.id];
+  con.query('SELECT * FROM levelsys where id = ?', target.id, function (err, rows) {
+    if (err) throw err;
+    let xp = rows[0].xp;
+    let lvl = rows[0].level;
+  });
   const embed = new Discord.RichEmbed()
     .setTitle("Információk a felhasználóról!")
     .setAuthor(target.username, target.avatarURL)
@@ -22,14 +21,12 @@ module.exports.run = async (bot, message, args, db) => {
     )
     .addField("ID", target.id)
     .addField("Regisztrált", target.createdAt)
-    .addField("szint", userInfo.level)
-    .addField("XP", userInfo.xp + "/100");
-
-  message.channel.send(embed);
+  //.addField("szint", level)
+  //.addField("XP", xp);
   console.log(`${message.author.username}: userinfo used`);
+  message.channel.send(embed);
   return;
 };
-
 module.exports.help = {
   name: "userinfo",
   aliases: ["", ""],

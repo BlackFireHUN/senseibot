@@ -27,11 +27,13 @@ module.exports.run = async (bot, message, args) => {
       "Nem némíthatsz valakit aki nagyobb jogokkal rendelkezik nálad."
     );
   let role = message.guild.roles.find(r => r.name === "Tag");
+  let role2 = message.guild.roles.find(r => r.name === "MUTED");
 
-  if (!toMute.roles.has(role.id))
+  if (!toMute.roles.has(role.id) && toMute.roles.has(role2.id))
     return message.channel.send("Ez a felhasználó már némítva van!");
 
-  await toMute.removeRole(role), message.channel.send(`Elnémítva: ${toMute}`);
+  await toMute.removeRole(role);
+  await toMute.addRole(role2), message.channel.send(`Elnémítva: ${toMute}`);
   console.log(`${message.author.username}: mute: ${toMute} used`);
   return;
 };

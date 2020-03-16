@@ -4,26 +4,25 @@ const c = require("chalk");
 const fs = require("fs");
 const Canvas = require("canvas");
 const superagent = require("superagent");
+var mysql = require('mysql');
 const moment = require("moment");
 const ra = require("remove-accents");
-let db = JSON.parse(fs.readFileSync("./database.json", "utf8"));
-
 const prefix = config.prefix;
 
 const bot = new Discord.Client();
 
-bot.chat = require("discord.js-chatbot");
-
-bot.chat.ChatBot(bot, {
-  cleverUser: "B8mZi7J24Zc3NVjC",
-  cleverKey: "6VygFL9KLe4AqWwJ9F5SnQZGz6YsdwTi",
-  // cleverNick will be the session the bot uses from cleverbot.io.
-  // This can be whatever you like.
-  cleverNick: "sensei",
-  watchMention: true
+var con = mysql.createConnection({
+  host: config.database.host,
+  user: config.database.user,
+  password: config.database.password,
+  database: config.database.database
+});
+con.connect(async function (err) {
+  if (err) throw err;
+  console.log("connected to database");
 });
 
-require("./util/eventHandler")(bot);
+require("./util/eventHandler")(bot, con);
 
 bot.commands = new Discord.Collection();
 bot.aliases = new Discord.Collection();
@@ -47,38 +46,29 @@ fs.readdir("./cmds/", (err, files) => {
 
 bot.login(config.token);
 
+
 bot.on("message", async message => {
   const parancschannel = bot.channels.find(ch => ch.name === "bot-parancsok");
-  // if the user is not on db add the user and change his values to 0
-  if (!db[message.author.id])
-    db[message.author.id] = {
-      xp: 0,
-      level: 0
-    };
-  db[message.author.id].xp++;
-  let userInfo = db[message.author.id];
-  if (userInfo.xp > 100) {
-    userInfo.level++;
-    userInfo.xp = 0;
-    parancschannel.send(
-      `**${message.author.username}** Gratulálok! Szintet léptél! Szinted: **${userInfo.level}**`
-    );
-  }
-  fs.writeFile("./database.json", JSON.stringify(db), x => {
-    if (x) console.error(x);
-  });
-
   if (
     config.FILTER_LIST.some(word =>
       message.content.toLowerCase().includes(word)
     )
   ) {
+    if (message.channel.id === "643093978799013901") return;
+    if (message.channel.id === "643172205903085578") return;
+    if (message.channel.id === "645514122959650826") return;
+    if (message.channel.id === "643854113733607435") return;
+    if (message.channel.id === "643563061692727296") return;
+    if (message.channel.id === "681597174932701216") return;
+    if (message.channel.id === "681610982468223022") return;
     message.delete();
     message.author.send("Ne beszélj csúnyán!");
+    userInfo.xp = 0;
     const randommondat = [
       "A szivárványok szépek!",
       "A zene az jó!",
-      "Szeretem a pillangókat!"
+      "Szeretem a pillangókat!",
+      "BlackFire nem lány!"
     ];
     const random =
       randommondat[Math.floor(Math.random() * randommondat.length)];
@@ -88,10 +78,7 @@ bot.on("message", async message => {
   }
 
   if (message.author.bot) return;
-  if (message.channel.type === "dm")
-    return message.channel.send(
-      "Nem használhatod ezt a parancsot privát üzenetben!"
-    );
+
 
   if (
     /(?:https?:\/)?discord(?:app.com\/invite|.gg)/gi.test(message.content) &&
@@ -106,10 +93,21 @@ bot.on("message", async message => {
   let command = messageArray[0].toLowerCase();
   let args = messageArray.slice(1);
 
-  if (!command.startsWith(prefix)) return;
 
+  if (message.channel.type == "dm") {
+    if (command.startsWith(prefix)) {
+      return message.channel.send("Nem használhatod ezt a parancsot privát üzenetben!");
+    } else {
+      return message.channel.send("Ne zaklass! kösz!");
+    }
+  }
+
+
+  if (!command.startsWith(prefix)) return;
+  const panic = JSON.parse(fs.readFileSync("./panic.json", "utf8"));
+  if (panic.panic === "1" && message.author.id != "152615338213638144") return message.channel.send(`${bot.user.username} pánik módban van! Csak BlackFire használhatja jelenleg!`);
   let cmd = bot.commands.get(command.slice(prefix.length));
-  if (cmd) cmd.run(bot, message, args, db, fs);
+  if (cmd) cmd.run(bot, message, args, fs, con);
 });
 
 // üdvözlő üzenet! \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -128,8 +126,6 @@ const applyText = (canvas, text) => {
 bot.on("guildMemberAdd", async member => {
   const channel = member.guild.channels.find(ch => ch.name === "üdvözlünk");
   const privchannel = member.guild.channels.find(ch => ch.name === "spy");
-  let role = member.guild.roles.find(r => r.name === "Tag");
-  member.addRole(role);
 
   if (!channel) return;
 
@@ -171,25 +167,35 @@ bot.on("guildMemberAdd", async member => {
     "welcome-image.png"
   );
   privchannel.send(`${member.user.username}: ${member.user.createdAt}`);
-  channel.send(member, attachment);
+  var message = "Olvasd el a **szabályokat** a szerver eléréséhez!";
+  let embedtodm = new Discord.RichEmbed()
+    .setAuthor(`Üdv, ${member.user.username}`, bot.user.avatarURL)
+    .setColor("00ff00")
+    .addField("Üdv az animem-en!", "Olvasd el a **szabályokat** hogy hozzáférj a szerverhez!")
+    .addField("Segítség!", "Segítséget a **helpdesk** csatornában kérhetsz!")
+    .addField("Egyéb: ", "Az adminok nem fognak válaszolni a privát üzenetekre!")
+    .setImage('http://blackfire.hu/dl/final.png');
+  member.send(embedtodm);
+
+  await channel.send(member, attachment);
+  channel.send("Olvasd el a **szabályokat** hogy hozzáférj a szerverhez!");
+
+
 });
 // üdvözlő üzenet vége! \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 bot.on("message", message => {
   if (message.content === "Suki Suki Daisuki") {
     message.channel.send("hime!! hime!!");
   }
-});
-bot.on("message", message => {
+
   if (message.content === "hime!! hime!!") {
     message.channel.send("kira kira rin ☆");
   }
-});
-bot.on("message", message => {
+
   if (message.content === "kira kira rin ☆") {
     message.channel.send("kimi to minna ireba watashi tte zettai muteki");
   }
-});
-bot.on("message", message => {
+
   if (message.content === "what?") {
     message.channel.send("Nani???4?");
   }
@@ -238,7 +244,7 @@ bot.on("message", async message => {
 
     function fullchatloguser(message) {
       fs.appendFileSync(
-        `../../../home/admin/web/srv02.animedrive.hu/public_html/animemlog/${felhasznalo}_${felhasznaloid}.txt`,
+        `./log/${felhasznalo}_${felhasznaloid}.txt`,
         ra.remove(message),
         "utf8",
         { flags: "a+" }
@@ -246,20 +252,17 @@ bot.on("message", async message => {
     }
 
     function fullchatlog(message) {
-      fs.appendFileSync(
-        `./log/${gn}_${gid}.txt`,
-        ra.remove(message),
-        "utf8",
-        {
-          flags: "a+"
-        }
-      );
+      fs.appendFileSync(`./log/${gn}_${gid}.txt`, ra.remove(message), "utf8", {
+        flags: "a+"
+      });
     }
   }
 });
 bot.on("voiceStateUpdate", (oldMember, newMember) => {
   let newUserChannel = newMember.voiceChannel;
   let oldUserChannel = oldMember.voiceChannel;
+  var res = newMember.user.username.replace(/[^\x00-\x7F]/g, "");
+
 
   if (oldUserChannel === undefined && newUserChannel !== undefined) {
     var currentdate = new Date();
@@ -279,20 +282,15 @@ bot.on("voiceStateUpdate", (oldMember, newMember) => {
 
     // User Joins a voice channel
     console.log(
-      `[${newMember.user.username}] belépett ide: [${newMember.guild.name}]  [${newMember.voiceChannel.name}] ${datetime}`
+      `[${res}] belépett ide: [${newMember.guild.name}]  [${newMember.voiceChannel.name}] ${datetime}`
     );
     fullchatlog(
-      `[${newMember.user.username}] belépett ide: [${newMember.guild.name}]  [${newMember.voiceChannel.name}] ${datetime}\r\n`
+      `[${res}] belépett ide: [${newMember.guild.name}]  [${newMember.voiceChannel.name}] ${datetime}\r\n`
     );
     function fullchatlog(message) {
-      fs.appendFileSync(
-        `./log/voicechat.txt`,
-        ra.remove(message),
-        "utf8",
-        {
-          flags: "a+"
-        }
-      );
+      fs.appendFileSync(`./log/voicechat.txt`, ra.remove(message), "utf8", {
+        flags: "a+"
+      });
     }
   } else if (newUserChannel === undefined) {
     var currentdate = new Date();
@@ -311,20 +309,15 @@ bot.on("voiceStateUpdate", (oldMember, newMember) => {
       currentdate.getSeconds();
     // User leaves a voice channel
     console.log(
-      `[${newMember.user.username}] kilépett innen: [${newMember.guild.name}]  [${oldMember.voiceChannel.name}] ${datetime}`
+      `[${res}] kilépett innen: [${newMember.guild.name}]  [${oldMember.voiceChannel.name}] ${datetime}`
     );
     fullchatlog(
-      `[${newMember.user.username}] kilépett innen: [${newMember.guild.name}]  [${oldMember.voiceChannel.name}] ${datetime}\r\n`
+      `[${res}] kilépett innen: [${newMember.guild.name}]  [${oldMember.voiceChannel.name}] ${datetime}\r\n`
     );
     function fullchatlog(message) {
-      fs.appendFileSync(
-        `./log/voicechat.txt`,
-        ra.remove(message),
-        "utf8",
-        {
-          flags: "a+"
-        }
-      );
+      fs.appendFileSync(`./log/voicechat.txt`, ra.remove(message), "utf8", {
+        flags: "a+"
+      });
     }
   } else {
     var currentdate = new Date();
@@ -344,20 +337,15 @@ bot.on("voiceStateUpdate", (oldMember, newMember) => {
     //user moved
     if (oldMember.voiceChannel.name === newMember.voiceChannel.name) return;
     console.log(
-      `[${newMember.user.username}] atlepett ide: [${newMember.guild.name}] [${oldMember.voiceChannel.name}] --> [${newMember.voiceChannel.name}] ${datetime}`
+      `[${res}] atlepett ide: [${newMember.guild.name}] [${oldMember.voiceChannel.name}] --> [${newMember.voiceChannel.name}] ${datetime}`
     );
     fullchatlog(
-      `[[${newMember.user.username}]] atlepett ide: [${newMember.guild.name}] [${oldMember.voiceChannel.name}] --> [${newMember.voiceChannel.name}] ${datetime}\r\n`
+      `[[${res}]] atlepett ide: [${newMember.guild.name}] [${oldMember.voiceChannel.name}] --> [${newMember.voiceChannel.name}] ${datetime}\r\n`
     );
     function fullchatlog(message) {
-      fs.appendFileSync(
-        `./log/voicechat.txt`,
-        ra.remove(message),
-        "utf8",
-        {
-          flags: "a+"
-        }
-      );
+      fs.appendFileSync(`./log/voicechat.txt`, ra.remove(message), "utf8", {
+        flags: "a+"
+      });
     }
   }
 });
