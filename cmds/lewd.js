@@ -1,9 +1,12 @@
 module.exports.run = async (bot, message, args) => {
   let role = message.guild.roles.find(r => r.name === "lewd");
 
-  if (message.member.roles.has(role.id))
-    return message.channel.send("Már van hozzáférésed az nsfw csatornához!");
-
+  if (message.member.roles.has(role.id)) {
+    await message.member.removeRole(role);
+    return message.channel.send(
+      `${message.author.username}: Már nem vagy lewd? A jogod már biztosan nincs meg :(`
+    );
+  }
   await message.member.addRole(role),
     message.channel.send(`${message.author.username}: Jó szórakozást!`);
 

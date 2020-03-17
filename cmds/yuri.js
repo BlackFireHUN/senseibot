@@ -4,8 +4,8 @@ const superagent = require("superagent");
 module.exports.run = async (bot, message, args) => {
   if (message.channel.nsfw === true) {
     const links = [
-      "https://nekos.life/api/v2/img/yuri",
-      "https://nekos.life/api/v2/img/eroyuri"
+      "http://cdn.blackfire.hu/img/yuri",
+      "http://cdn.blackfire.hu/img/eroyuri"
     ];
     const random = links[Math.floor(Math.random() * links.length)];
     superagent.get(random).end((err, response) => {

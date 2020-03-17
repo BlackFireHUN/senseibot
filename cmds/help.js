@@ -18,10 +18,10 @@ module.exports.run = async (bot, message, args) => {
         .setTimestamp()
         .setDescription(
           `A prefix: ${prefix}\n\n**Parancs:** ${
-            command.help.name
+          command.help.name
           }\n**Leírás:** ${command.help.description ||
-            "Leírás nem található!"}\n**Használat:** ${command.help.usage ||
-            "Használati útmutatás nem található!"}\n**Használhatja:** ${command
+          "Leírás nem található!"}\n**Használat:** ${command.help.usage ||
+          "Használati útmutatás nem található!"}\n**Használhatja:** ${command
             .help.accessableby || "Mindenki"}`
         )
         .setFooter("© Animem.org", message.author.avatarURL);
@@ -39,10 +39,10 @@ module.exports.run = async (bot, message, args) => {
       .setDescription(`A prefix: ${prefix}`)
       .addField(
         "Az elérhető parancsok:",
-        "``ping`` ``vote`` ``userinfo`` ``serverinfo`` ``weather`` ``botinfo`` ``avatar`` ``clear`` ``say`` ``dankmeme`` ``meme`` ``animeme`` ``mute`` ``unmute`` ``reload`` ``setlevel`` ``lewd`` ``nsfw`` ``hentai`` ``hneko`` ``yuri`` ``trap`` ``keta``"
+        "``ping`` ``vote`` ``userinfo`` ``serverinfo`` ``weather`` ``botinfo`` ``avatar`` ``clear`` ``say`` ``dankmeme`` ``meme`` ``animeme`` ``nekomeme`` ``owoify`` ``ship`` ``cuddle`` ``sad`` ``bite`` ``stare`` ``teehee`` ``wasted`` ``mute`` ``unmute`` ``reload`` ``setlevel`` ``lewd`` ``nsfw`` ``hentai`` ``hneko`` ``yuri`` ``trap`` ``keta`` ``r34``"
       )
       .addField("Music modul segítség:", "``mhelp``")
-      .setFooter("© Animem.org", message.author.avatarURL);
+      .setFooter("© Animem.org", message.guild.iconURL);
     message.author.send(dembed);
   }
 };
