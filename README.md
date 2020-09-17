@@ -39,4 +39,4 @@ node bot.js
 it works... kinda... the level system does not in this branch... the user info has a mysql error... i wont include the mysql schemas or what for the bot... u can guess it by loking into the code... the database stuff is in the config.json... the new mysql based log works great so far... altho it has the connection in the log.js... so the first message event after the bot start wont be loged... GL &HF ... i really enjoyed working on sensei... i hope someone will take the effort to understand my bad code and tries to make sensei better...
 
 ## AUTHOR
-[BlackFire](https://blackfire.hu/) 
+[BlackFire](https://blackfire.hu/)
